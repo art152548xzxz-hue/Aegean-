@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="utf-8">
@@ -11,7 +10,7 @@
 :root[data-theme="dark"]{--bg:#121712;--card:#1B221C;--ink:#EEF3EE;--mute:#9BA69C;--line:#2B352C;--pri:#8FC79F;--pri-s:#1F3326;--red-s:#432029;--amb-s:#3B2F12;--grn-s:#17382B;--gray:#252E26;color-scheme:dark}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.55 'Noto Sans Thai',system-ui,sans-serif}
-button,input,select{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}
 button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--pri);outline-offset:2px}
 .wrap{max-width:900px;margin:0 auto;padding:16px 16px 120px}
 header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
@@ -91,7 +90,7 @@ const STL={ok:'ครบ',bad:'ขาด',warn:'ขาด',closed:'หยุด'
 const cols=['#2B5A3A','#9A5B3E','#3E6E8C','#8A7A2B','#6B4E8C','#8C3E5E'];
 const TITLE={me:'ของฉัน',home:'ภาพรวมวันนี้',roster:'ตารางพนักงาน',reqs:'คำขอสลับกะ',alerts:'แจ้งเตือน',staff:'จัดการพนักงาน'};
 const TABS=[['home','ภาพรวม'],['roster','ตาราง'],['reqs','คำขอ'],['alerts','แจ้งเตือน'],['staff','พนักงาน']],TABS_S=[['me','ของฉัน'],...TABS];
-const I={back:'<path d="M15 5l-7 7 7 7"/>',home:'<path d="M4 11l8-7 8 7v9H4z"/>',bell:'<path d="M6 17V11a6 6 0 0112 0v6l1.5 2h-15zM10 21h4"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>'};
+const I={back:'<path d="M15 5l-7 7 7 7"/>',home:'<path d="M4 11l8-7 8 7v9H4z"/>',bell:'<path d="M6 17V11a6 6 0 0112 0v6l1.5 2h-15zM10 21h4"/>',trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',cam:'<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/>'};
 const ic=k=>`<svg viewBox="0 0 24 24">${I[k]}</svg>`;
 const SEED=()=>({need:[4,4,0,4,4,2,1],reqs:[],logs:[],E:[
  {id:0,n:'นิ่ม',av:[0,1,3,4,5],s:[0,1,3,4]},{id:1,n:'ต้น',av:[0,1,3,4,5],s:[0,1,3,4]},
@@ -103,7 +102,7 @@ const dd=a=>Array.isArray(a)?[...new Set(a.map(Number).filter(d=>d>=0&&d<=6&&!CL
 const tt=x=>Array.isArray(x)&&x.length===2&&x[0]>=0&&x[1]<=24&&x[0]<x[1]?[Number(x[0]),Number(x[1])]:[9,17];
 const uid=()=>Math.random().toString(36).slice(2,9),tok=()=>(uid()+uid()).slice(0,10);
 function sane(o){try{if(!o||!Array.isArray(o.E)||!Array.isArray(o.need)||o.need.length!==7)return null;
- const seen=new Set(),E=[];o.E.forEach(e=>{const id=Number(e&&e.id);if(!Number.isInteger(id)||seen.has(id))return;seen.add(id);const s=dd(e.s),t={};s.forEach(d=>t[d]=tt(e.t&&e.t[d]));E.push({id,n:cn(e.n)||'พนักงาน',av:dd(e.av),s,t,tk:(/^[a-z0-9]{6,12}$/.test(e.tk)?e.tk:tok()),tel:cn(e.tel).slice(0,20),ln:cn(e.ln),...(typeof e.ph==='string'&&e.ph.startsWith('data:image/')?{ph:e.ph}:{})})});
+ const seen=new Set(),E=[];o.E.forEach(e=>{const id=Number(e&&e.id);if(!Number.isInteger(id)||seen.has(id))return;seen.add(id);const s=dd(e.s),t={};s.forEach(d=>t[d]=tt(e.t&&e.t[d]));E.push({id,n:cn(e.n)||'พนักงาน',av:dd(e.av),s,t,tk:(/^[a-z0-9]{6,12}$/.test(e.tk)?e.tk:tok()),tel:cl(e.tel).slice(0,20),fn:cl(e.fn).slice(0,60),addr:cl(e.addr).slice(0,200),...(typeof e.ph==='string'&&e.ph.startsWith('data:image/')?{ph:e.ph}:{})})});
  E.sort((a,b)=>a.id-b.id);
  const need=o.need.map((n,d)=>CLOSED.includes(d)?0:Math.max(0,Math.min(20,parseInt(n)||0)));
  const reqs=(Array.isArray(o.reqs)?o.reqs:[]).filter(r=>r&&seen.has(r.b)&&(r.k==='assign'||seen.has(r.a))&&Number.isInteger(r.d)&&['wait_b','wait_owner','done','no'].includes(r.st)).map(r=>({id:String(r.id||uid()),k:r.k==='assign'?'assign':'swap',a:r.k==='assign'?null:r.a,b:r.b,d:r.d,e:Number.isInteger(r.e)?r.e:null,t:tt(r.t),st:r.st,at:Number(r.at)||0}));
@@ -169,11 +168,11 @@ function homeH(){
   h+=`</div><div class="card"><div class="ch"><h2>คำขอสลับกะ</h2><button class="link" data-go="reqs">ดูทั้งหมด →</button></div>`;
   const ps=S.reqs.filter(r=>r.st==='wait_b'||r.st==='wait_owner');
   h+=ps.length?ps.map(r=>`<p style="margin:0 0 6px">${rdesc(r)} <span class="tag warn">${r.st==='wait_b'?'รอตอบรับ':'รออนุมัติ'}</span></p>`).join(''):'<div class="empty">ยังไม่มีคำขอ</div>';
-  return h+`</div>${OWN()?'<div class="act"><button class="btn" data-go="staff">ส่งลิงก์ให้พนักงาน</button></div>':''}<p class="hint" style="margin-top:12px">ร้านหยุดทุกวันพุธ${OWN()?' · พนักงานแต่ละคนมีลิงก์ส่วนตัวสำหรับส่งวันว่างและตอบรับคำขอ':''}</p>`;
+  return h+`</div><p class="hint" style="margin-top:12px">ร้านหยุดทุกวันพุธ</p>`;
 }
 function rosterH(){
   const o=OWN(),m=me();
-  let h=`<div class="card"><div class="ch"><h2>${edit?'แก้ไขตาราง':'ตารางทั้งสัปดาห์'}</h2><button class="btn ${edit?'':'ghost'}" data-a="edit">${edit?'เสร็จสิ้น':o?'แก้ไขตาราง':'เลือกกะของฉัน'}</button></div>
+  let h=`<div class="card"><div class="ch"><h2>${edit?'แก้ไขตาราง':'ตารางทั้งสัปดาห์'}</h2><div class="act" style="margin:0"><button class="circ" data-a="snap" aria-label="บันทึกภาพตารางงาน">${ic('cam')}</button><button class="btn ${edit?'':'ghost'}" data-a="edit">${edit?'เสร็จสิ้น':o?'แก้ไขตาราง':'เลือกกะของฉัน'}</button></div></div>
   <p class="hint">${edit?(o?'แตะช่องว่างเพื่อเพิ่มกะ แตะกะเพื่อเลือกเวลาหรือลบ ปรับจำนวนคนที่ต้องการด้วย − / + ระบบบันทึกให้อัตโนมัติ':'แก้ไขได้เฉพาะแถวของคุณ แตะช่องว่างเพื่อเพิ่มกะ แตะกะเพื่อเลือกเวลาหรือลบ'):(o?'แตะที่กะของพนักงานเพื่อขอสลับกะ':'แตะกะของคุณเพื่อขอสลับกะ')}</p><div class="scroll"><div class="grid"><div></div>`;
   for(let d=0;d<7;d++){const x=CLOSED.includes(d);h+=`<div class="dh ${lc(d)}">${DAYS[d]} ${DATES[d]}<small>${x?'ร้านหยุด':cov(d)+'/'+S.need[d]+' คน'}</small>${edit&&!x&&o?`<div class="stp"><button data-need="${d}:-1" aria-label="ลดจำนวน">−</button><button data-need="${d}:1" aria-label="เพิ่มจำนวน">+</button></div>`:''}</div>`}
   S.E.forEach(e=>{
@@ -191,13 +190,13 @@ function rosterH(){
 }
 function staffH(){
   const o=OWN();
-  let h=`<div class="ch"><span class="hint" style="margin:0">${o?'แตะรูปเพื่อเปลี่ยนรูปโปรไฟล์ แก้ชื่อและวันว่างได้เลย':'ดูข้อมูลทุกคนได้ แก้ไขได้เฉพาะข้อมูลของคุณ'}</span>${o?'<button class="btn" data-a="addemp">+ เพิ่ม</button>':''}</div>`;
+  let h=`<div class="ch"><span class="hint" style="margin:0">${o?'กดแก้ไขข้อมูลส่วนตัวเพื่อใส่ชื่อ รูป และเบอร์ติดต่อ':'ดูข้อมูลทุกคนได้ แก้ไขได้เฉพาะข้อมูลของคุณ'}</span>${o?'<button class="btn" data-a="addemp">+ เพิ่ม</button>':''}</div>`;
   S.E.forEach(e=>{
     const s=SUB[e.id],c=can(e.id);
-    h+=`<div class="card" style="padding:14px"><div class="act" style="margin:0;flex-wrap:nowrap">${c?`<label style="cursor:pointer"><input type="file" accept="image/*" data-ph="${e.id}" hidden>${avatar(e,1)}</label>`:avatar(e,1)}<div style="flex:1;min-width:0">${c?`<input class="inp" style="width:100%" value="${e.n}" data-name="${e.id}" aria-label="ชื่อพนักงาน">`:`<b>${e.n}</b>`}<div class="sub">ตำแหน่ง: พนักงาน${e.tel?' · โทร '+e.tel:''}${e.ln?' · LINE '+e.ln:''}</div></div>
+    h+=`<div class="card" style="padding:14px"><div class="act" style="margin:0;flex-wrap:nowrap">${avatar(e,1)}<div style="flex:1;min-width:0"><b>${e.n}${e.fn?' · '+e.fn:''}</b><div class="sub">ตำแหน่ง: พนักงาน${e.tel?' · โทร '+e.tel:''}</div>${e.addr?`<div class="sub">${e.addr}</div>`:''}${c?`<div class="act"><button class="btn ghost" data-prof="${e.id}">แก้ไขข้อมูลส่วนตัว</button></div>`:''}</div>
     ${o?`<button class="circ" data-del="${e.id}" aria-label="ลบพนักงาน">${ic('trash')}</button>`:''}</div>
     <div class="sub" style="margin-top:10px">วันที่ว่าง</div><div class="days">${DAYS.map((x,d)=>`<button class="${e.av.includes(d)?'on':CLOSED.includes(d)?'':'n'}" ${CLOSED.includes(d)||!c?'disabled':''} data-av="${e.id}:${d}">${x}</button>`).join('')}</div>
-    <div class="act" style="margin-top:12px"><span class="sub" style="flex:1">${s?`ส่งแล้ว · ว่าง ${dl(s.av)} · ขอหยุด ${dl(s.off)}`:'ยังไม่ส่งวันว่างสัปดาห์หน้า'}</span>${s&&o?`<button class="btn ghost" data-use="${e.id}">ใช้ข้อมูลนี้</button>`:''}</div>${o?linkH(e):''}</div>`;
+    <div class="act" style="margin-top:12px"><span class="sub" style="flex:1">${s?`ส่งแล้ว · ว่าง ${dl(s.av)} · ขอหยุด ${dl(s.off)}`:'ยังไม่ส่งวันว่างสัปดาห์หน้า'}</span>${s&&o?`<button class="btn ghost" data-use="${e.id}">ใช้ข้อมูลนี้</button>`:''}</div></div>`;
   });
   return h;
 }
@@ -219,20 +218,18 @@ function reqsH(){
     return`<div class="req"><div class="ch" style="margin:0;align-items:flex-start"><h3>${rdesc(r)}</h3>${tag}</div><div class="steps">${labels.map((l,j)=>`<div class="${j<idx?'on':''}">${l}</div>`).join('')}</div>${act?`<div class="act">${act}</div>`:''}${o&&r.st==='wait_b'?notifyH(r,b):''}</div>`;
   }).join('');
 }
-function linkH(e){return`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px"><div class="sub">ลิงก์ส่วนตัวของ ${e.n} (ดูได้ทุกหน้า แก้ไขได้เฉพาะข้อมูลของตัวเอง)</div><div class="act"><a class="btn ghost" target="_blank" rel="noopener" href="https://line.me/R/share?text=${encodeURIComponent(lmsg(e))}">ส่งทาง LINE</a><button class="btn ghost" data-preview="${e.id}">ดูหน้าพนักงาน</button></div></div>`}
-function notifyH(r,b){const m=`สวัสดี ${b.n} มีคำขอรอคุณยินยอม: ${rdesc(r)} กรุณาเปิดลิงก์ส่วนตัวเพื่อตอบรับ: ${lk(b)}`;
- return`<div class="act"><span class="sub">แจ้งพนักงาน:</span><a class="btn ghost" target="_blank" rel="noopener" href="https://line.me/R/share?text=${encodeURIComponent(m)}">ส่งทาง LINE</a></div>`}
+function notifyH(){return''}
 function meH(){
   const m=me(),e=emp(m);if(!PF||PF.me!==m){const s=SUB[m];PF={me:m,av:s?[...s.av]:[0,1,3,4,5,6],off:s?[...s.off]:[]}}
   const rows=()=>DAYS.map((x,d)=>CLOSED.includes(d)?`<div class="avr"><b>${x} ${DATES2[d]}</b><span class="sub" style="grid-column:span 2">ร้านหยุด</span></div>`:`<div class="avr"><b>${x} ${DATES2[d]}</b><button class="g ${PF.av.includes(d)?'on':''}" data-pa="${d}">ว่าง</button><button class="r ${PF.off.includes(d)?'on':''}" data-po="${d}">ไม่ว่าง</button></div>`).join('');
   const mine=e.s.length?e.s.map(d=>{const[a,b]=sh(e,d);return`<div class="drow" style="grid-template-columns:64px 1fr auto"><b>${DAYS[d]} ${DATES[d]}</b><span>${ft(a)}–${ft(b)}</span><span class="sub">${fh(b-a)} ชม. · ${thb(b-a)} บาท</span></div>`}).join('')+`<p style="margin:10px 0 0;font-weight:600">รวม ${fh(hrs(e))} ชั่วโมง · ${thb(hrs(e))} บาท</p>`:'<div class="empty" style="padding:14px">ยังไม่มีกะในสัปดาห์นี้</div>';
-  const prof=`<div class="card"><div class="ch"><h2>ข้อมูลส่วนตัว</h2></div><div class="act" style="margin:0;flex-wrap:nowrap"><label style="cursor:pointer"><input type="file" accept="image/*" data-ph="${m}" hidden>${avatar(e,1)}</label><div style="flex:1;min-width:0"><input class="inp" style="width:100%" value="${e.n}" data-name="${m}" placeholder="ชื่อ" aria-label="ชื่อ"><div class="sub" style="margin-top:4px">แตะรูปเพื่อแนบภาพโปรไฟล์</div></div></div><div class="act"><input class="inp" style="flex:1;min-width:120px" inputmode="tel" placeholder="เบอร์โทร" value="${e.tel||''}" data-tel="${m}" aria-label="เบอร์โทร"><input class="inp" style="flex:1;min-width:120px" placeholder="LINE ID" value="${e.ln||''}" data-ln="${m}" aria-label="LINE ID"></div></div>`;
+  const prof=`<div class="card"><div class="act" style="margin:0;flex-wrap:nowrap">${avatar(e,1)}<div style="flex:1;min-width:0"><b>${e.n}${e.fn?' · '+e.fn:''}</b><div class="sub">${e.tel?'โทร '+e.tel:'ยังไม่ได้กรอกเบอร์โทร'}</div>${e.addr?`<div class="sub">${e.addr}</div>`:''}<div class="act"><button class="btn ghost" data-prof="${m}">แก้ไขข้อมูลส่วนตัว</button></div></div></div></div>`;
   return prof+reqCard()+`<div class="card"><div class="ch"><h2>ตารางงานของฉัน</h2><button class="link" data-go="roster">เลือกกะ →</button></div>${mine}</div>
   <div class="card"><div class="ch" style="margin:0"><h2>การส่งข้อมูลวันที่ว่างทำงาน</h2></div><p class="hint" style="margin:2px 0 0">สัปดาห์ ${NW} · ร้านหยุดทุกวันพุธ</p><p class="hint" style="margin:10px 0 0">แตะ "ว่าง" (เขียว) หรือ "ไม่ว่าง" (แดง) ของแต่ละวัน</p>${rows()}
   <div class="act" style="margin-top:12px"><span class="tag ok">ว่าง ${PF.av.length} วัน</span><span class="tag bad">ไม่ว่าง ${PF.off.length} วัน</span></div>
   <div class="act" style="margin-top:20px"><button class="btn" style="flex:1;padding:13px" data-psend="1">${SUB[m]?'ส่งข้อมูลอีกครั้ง':'ส่งข้อมูล'}</button></div>${SUB[m]?'<p class="hint" style="margin:10px 0 0">ส่งข้อมูลแล้ว เจ้าของร้านจะเห็นในระบบ</p>':''}</div>`;
 }
-let rt=0;function softRender(){const a=document.activeElement;if(a&&a.tagName==='INPUT'&&a.type!=='file'){clearTimeout(rt);rt=setTimeout(softRender,800);return}render()}
+let rt=0;function softRender(){const a=document.activeElement;if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')&&a.type!=='file'){clearTimeout(rt);rt=setTimeout(softRender,800);return}render()}
 function render(){try{draw()}catch(e){$('#main').innerHTML='<div class="card empty">เกิดข้อผิดพลาดในการแสดงผล<br>กรุณารีเฟรชหน้าอีกครั้ง</div>'}}
 function draw(){
   const st=isStaff(),m=me(),hk=st?'me':'home',exit=preview?`<button class="circ" data-a="exit" aria-label="กลับหน้าเจ้าของร้าน">${ic('x')}</button>`:'';
@@ -275,23 +272,50 @@ function tsum(){const h=TS.en-TS.st,el=$('#tsum');if(el)el.textContent=h>0?`ร�
 function openTime(e,d){const p=emp(e),has=p.s.includes(d),[st,en]=has?sh(p,d):[9,17];TS={e,d,st,en};
  const op=v=>TO.map(x=>`<option value="${x}"${x===v?' selected':''}>${ft(x)}</option>`).join('');
  $('#sheet').innerHTML=`<h2>${has?'แก้ไขกะ':'เพิ่มกะ'}${FULL[d]}</h2><p class="sub">${p.n} · อัตราจ้าง ${S.rate} บาท/ชั่วโมง</p><div class="act" style="margin-top:14px"><label class="sub">เริ่ม<br><select class="inp" data-ts="st">${op(st)}</select></label><label class="sub">เลิก<br><select class="inp" data-ts="en">${op(en)}</select></label></div><p id="tsum" style="font-weight:600;margin:14px 0 0"></p><div class="act" style="margin-top:16px"><button class="btn" id="tsave" data-tsave="1" style="flex:1">บันทึกกะ</button>${has?'<button class="btn ghost" data-tdel="1">ลบกะ</button>':''}<button class="btn ghost" data-a="close">ปิด</button></div>`;$('#mask').classList.add('show');tsum()}
-function readPhoto(f,id){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=96;const s=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,96,96);emp(id).ph=c.toDataURL('image/jpeg',.8);render()};im.src=r.result};r.readAsDataURL(f)}
+function openProfile(id){const p=emp(id);if(!p)return;
+ const f=(l,k,v,x)=>`<div class="sub" style="margin-top:10px">${l}</div>${k==='addr'?`<textarea class="inp" rows="3" style="width:100%;resize:vertical" data-addr="${id}" aria-label="${l}">${v}</textarea>`:`<input class="inp" style="width:100%" ${x||''} value="${v}" data-${k}="${id}" aria-label="${l}">`}`;
+ $('#sheet').innerHTML=`<h2>แก้ไขข้อมูลส่วนตัว</h2><div class="act" style="flex-wrap:nowrap;margin-top:12px"><label style="cursor:pointer"><input type="file" accept="image/*" data-ph="${id}" hidden><span id="pv">${avatar(p,1)}</span></label><div class="sub">แตะรูปเพื่ออัปโหลดภาพของคุณ</div></div>${f('ชื่อจริง','fn',p.fn||'')}${f('ชื่อเล่น','name',p.n)}${f('เบอร์โทรศัพท์','tel',p.tel||'','inputmode="tel"')}${f('ที่อยู่ปัจจุบัน','addr',p.addr||'')}<button class="btn" style="width:100%;margin-top:18px" data-a="close">เสร็จสิ้น</button>`;$('#mask').classList.add('show')}
+function snap(){const L=f=>document.fonts?document.fonts.load(f,'ก').catch(()=>{}):Promise.resolve();Promise.all([L('400 16px "Noto Sans Thai"'),L('600 16px "Noto Sans Thai"'),L('700 16px "Noto Sans Thai"')]).then(snapDraw)}
+function snapDraw(){
+ const E=S.E,P=24,NC=180,DC=128,W=P*2+NC+DC*7,HH=92,RH=66,TOP=P+86,H=TOP+HH+E.length*RH+70+P;
+ const c=document.createElement('canvas'),sc=2;c.width=W*sc;c.height=H*sc;const g=c.getContext('2d');g.scale(sc,sc);
+ const F='"Noto Sans Thai",system-ui,sans-serif',rr=(x,y,w,h,r,f)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();g.fillStyle=f;g.fill()};
+ const tx=(t,x,y,sz,wt,col,al,mw)=>{g.font=wt+' '+sz+'px '+F;g.fillStyle=col;g.textAlign=al||'left';g.textBaseline='middle';if(mw)g.fillText(t,x,y,mw);else g.fillText(t,x,y)};
+ g.fillStyle='#fff';g.fillRect(0,0,W,H);
+ tx('Aegean · ตารางงาน',P,P+26,30,700,'#1D2A1F');
+ tx('สัปดาห์ 23 – 29 พ.ย. 2569 · ร้านหยุดทุกวันพุธ',P,P+62,18,400,'#737D74');
+ for(let d=0;d<7;d++){const x=P+NC+d*DC+4,l=lvl(d),k=l==='ok'?['#DFF3E9','#23885A']:l==='closed'?['#EDEFEB','#737D74']:['#FBE7EA','#C8445A'];
+  rr(x,TOP,DC-8,HH-10,14,k[0]);tx(DAYS[d]+' '+DATES[d],x+(DC-8)/2,TOP+28,20,700,k[1],'center');tx(l==='closed'?'ร้านหยุด':cov(d)+'/'+S.need[d]+' คน',x+(DC-8)/2,TOP+56,16,600,k[1],'center')}
+ E.forEach((e,i)=>{const y=TOP+HH+i*RH;
+  if(i%2===0)rr(P,y,W-P*2,RH-6,12,'#F7F8F6');
+  tx(e.n,P+12,y+22,20,700,'#1D2A1F','left',NC-20);tx(fh(hrs(e))+' ชม. · '+thb(hrs(e))+' บ.',P+12,y+46,14,400,'#737D74','left',NC-20);
+  for(let d=0;d<7;d++){const x=P+NC+d*DC+4;
+   if(CLOSED.includes(d)){rr(x,y+2,DC-8,RH-10,10,'#EDEFEB');continue}
+   if(e.s.includes(d)){const[a,b]=sh(e,d);rr(x,y+2,DC-8,RH-10,10,'#E3EFE6');rr(x,y+2,5,RH-10,2,'#2B5A3A');tx(ft(a)+'–'+ft(b),x+16,y+22,16,700,'#1D2A1F','left',DC-28);tx(fh(b-a)+' ชม.',x+16,y+42,13,400,'#737D74')}
+   else rr(x,y+2,DC-8,RH-10,10,'#F4F5F2')}});
+ const fy=TOP+HH+E.length*RH+30;
+ tx('รวมทั้งสัปดาห์ '+fh(totH())+' ชั่วโมง · '+thb(totH())+' บาท (อัตรา '+S.rate+' บาท/ชม.)',P,fy,18,600,'#1D2A1F');
+ const url=c.toDataURL('image/png');
+ $('#sheet').innerHTML='<h2>ภาพตารางงาน</h2><p class="sub">กดบันทึกรูป หรือกดค้างที่รูปเพื่อบันทึก</p><img src="'+url+'" alt="ตารางงาน" style="width:100%;border-radius:12px;border:1px solid var(--line);margin-top:10px"><div class="act" style="margin-top:14px"><a class="btn" style="flex:1;text-align:center" download="aegean-schedule.png" href="'+url+'">บันทึกรูป</a><button class="btn ghost" data-a="close">ปิด</button></div>';
+ $('#mask').classList.add('show')}
+function readPhoto(f,id){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=96;const s=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,96,96);emp(id).ph=c.toDataURL('image/jpeg',.8);const pv=$('#pv');if(pv)pv.innerHTML=avatar(emp(id),1);render()};im.src=r.result};r.readAsDataURL(f)}
 const tgl=(a,d)=>a.includes(d)?a.filter(x=>x!==d):[...a,d].sort((x,y)=>x-y);
-const OO=['del','del2','need','rate','fill','use','preview'];
+const OO=['del','del2','need','rate','fill','use'];
 document.addEventListener('click',ev=>{
   const t=ev.target.closest('button,.mask');if(!t)return;const D=t.dataset,A=D.a;
   if(t.id==='mask'&&ev.target===t)return $('#mask').classList.remove('show');
   if(!OWN()&&(A==='addemp'||OO.some(k=>D[k]!==undefined)))return;
   if(D.go)return go(D.go);
+  if(D.prof){const id=+D.prof;if(!can(id))return;return openProfile(id)}
   if(A==='exit'){preview=false;location.hash='';return}
-  if(D.preview){const e=emp(+D.preview);preview=true;location.hash='s-'+e.id+'-'+e.tk;return}
   if(D.pa!==undefined&&PF){const d=+D.pa;PF.av=tgl(PF.av,d);PF.off=PF.off.filter(x=>x!==d);return render()}
   if(D.po!==undefined&&PF){const d=+D.po;PF.off=tgl(PF.off,d);PF.av=PF.av.filter(x=>x!==d);return render()}
   if(D.psend&&PF){const m=me();if(m==null)return;const rec={av:PF.av,off:PF.off,at:Date.now()};SUB[m]=rec;try{localStorage.setItem(SK,JSON.stringify(SUB))}catch(e){}if(DB)DB.collection('avail').doc(String(m)).set(rec).catch(()=>toast('ส่งไม่สำเร็จ ลองอีกครั้ง'));render();return toast('ส่งข้อมูลเรียบร้อยแล้ว')}
   if(A==='back'){if(stack.length>1)stack.pop();edit=false;return render()}
   if(A==='home'){stack=[isStaff()?'me':'home'];edit=false;return render()}
-  if(A==='close')return $('#mask').classList.remove('show');
+  if(A==='close'){$('#mask').classList.remove('show');return render()}
   if(A==='edit'){edit=!edit;return render()}
+  if(A==='snap')return snap();
   if(A==='addemp'){S.E.push({id:Math.max(-1,...S.E.map(e=>e.id))+1,n:'พนักงานใหม่',av:[0,1,3,4],s:[],t:{},tk:tok()});return render()}
   if(D.sw){const[e,d]=D.sw.split(':').map(Number);if(!can(e))return;return openSheet(e,d)}
   if(D.tg){const[e,d]=D.tg.split(':').map(Number);if(!can(e))return;return openTime(e,d)}
@@ -303,13 +327,13 @@ document.addEventListener('click',ev=>{
   if(D.use){const p=emp(+D.use),s=SUB[p.id];p.av=s.av.filter(d=>!s.off.includes(d));render();return toast('ใช้วันว่างของ '+p.n+' แล้ว')}
   if(D.del){const p=emp(+D.del);if(!p)return;$('#sheet').innerHTML=`<h2>ลบ ${p.n}?</h2><p class="sub">กะและคำขอสลับกะของคนนี้จะถูกลบด้วย</p><div class="act" style="margin-top:16px"><button class="btn" style="flex:1" data-del2="${p.id}">ลบ</button><button class="btn ghost" style="flex:1" data-a="close">ยกเลิก</button></div>`;$('#mask').classList.add('show');return}
   if(D.del2){const id=+D.del2;S.E=S.E.filter(e=>e.id!==id);S.reqs=S.reqs.filter(r=>r.a!==id&&r.b!==id);$('#mask').classList.remove('show');return render()}
-  if(D.send){const[a,b,d,e]=D.send.split(':').map(Number);if(!can(a))return;S.reqs.unshift({id:uid(),k:'swap',a,b,d,e:Number.isFinite(e)?e:null,t:[9,17],st:'wait_b',at:Date.now()});$('#mask').classList.remove('show');go('reqs');return toast(OWN()?'ส่งคำขอแล้ว กดส่งทาง LINE เพื่อแจ้ง '+emp(b).n:'ส่งคำขอแล้ว รอ '+emp(b).n+' ยินยอม')}
+  if(D.send){const[a,b,d,e]=D.send.split(':').map(Number);if(!can(a))return;S.reqs.unshift({id:uid(),k:'swap',a,b,d,e:Number.isFinite(e)?e:null,t:[9,17],st:'wait_b',at:Date.now()});$('#mask').classList.remove('show');go('reqs');return toast('ส่งคำขอแล้ว รอ '+emp(b).n+' ยินยอม')}
   if(D.ok){const r=rq(D.ok);if(!r||r.st!=='wait_b'||!(OWN()||r.b===me()))return;r.st='wait_owner';render();return toast('ยินยอมแล้ว รอเจ้าของร้านอนุมัติ')}
   if(D.no){const r=rq(D.no);if(!r||!(OWN()||(r.b===me()&&r.st==='wait_b')))return;r.st='no';render();return toast('ปฏิเสธคำขอแล้ว')}
   if(D.appr){if(!OWN())return;const r=rq(D.appr);if(!r||r.st!=='wait_owner')return;r.st='done';apply(r);render();return toast('อนุมัติแล้ว ตารางของทั้งสองคนอัปเดตแล้ว')}
-  if(D.fill){const[d,e]=D.fill.split(':').map(Number),p=emp(e);if(pa(d,e))return toast('ส่งคำขอให้ '+p.n+' แล้ว');S.reqs.unshift({id:uid(),k:'assign',a:null,b:e,d,e:null,t:[9,17],st:'wait_b',at:Date.now()});go('reqs');return toast('สร้างคำขอแล้ว กดส่งทาง LINE เพื่อแจ้ง '+p.n)}
+  if(D.fill){const[d,e]=D.fill.split(':').map(Number),p=emp(e);if(pa(d,e))return toast('ส่งคำขอให้ '+p.n+' แล้ว');S.reqs.unshift({id:uid(),k:'assign',a:null,b:e,d,e:null,t:[9,17],st:'wait_b',at:Date.now()});go('reqs');return toast('สร้างคำขอแล้ว รอ '+p.n+' ยินยอม')}
 });
-document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset.ratein!==undefined&&OWN()){const v=Number(t.value);S.rate=Number.isFinite(v)?Math.max(0,Math.min(9999,Math.round(v))):0;queueSave();return}if(t.dataset.tel!==undefined||t.dataset.ln!==undefined){const k=t.dataset.tel!==undefined?'tel':'ln',p=emp(+t.dataset[k]);if(p&&can(p.id))p[k]=cn(t.value).slice(0,20);queueSave();return}if(t.dataset.name!==undefined){const p=emp(+t.dataset.name);if(p&&can(p.id))p.n=cn(t.value);queueSave()}});
+document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset.ratein!==undefined&&OWN()){const v=Number(t.value);S.rate=Number.isFinite(v)?Math.max(0,Math.min(9999,Math.round(v))):0;queueSave();return}const K={tel:20,fn:60,addr:200};for(const k in K)if(t.dataset[k]!==undefined){const p=emp(+t.dataset[k]);if(p&&can(p.id))p[k]=cl(t.value).slice(0,K[k]);queueSave();return}if(t.dataset.name!==undefined){const p=emp(+t.dataset.name);if(p&&can(p.id))p.n=cn(t.value);queueSave()}});
 document.addEventListener('change',ev=>{const t=ev.target;if(t.dataset.ts&&TS){TS[t.dataset.ts]=Number(t.value);tsum();return}if(t.dataset.ratein!==undefined)return render();if(t.dataset.ph!==undefined&&t.files[0]&&can(+t.dataset.ph))readPhoto(t.files[0],+t.dataset.ph);if(t.dataset.name!==undefined){const p=emp(+t.dataset.name);if(p&&can(p.id)&&!p.n.trim())p.n='พนักงาน';render()}});
 addEventListener('hashchange',()=>{stack=[isStaff()?'me':'home'];edit=false;PF=null;if(!isStaff())preview=false;render()});
 const got={},DBU={core:null,emp:{},rq:{}};
