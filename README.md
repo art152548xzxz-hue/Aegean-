@@ -82,7 +82,7 @@ h1{font-size:21px;margin:0;font-weight:700;line-height:1.3}.sub{color:var(--mute
 <script>
 const DAYS=['จ.','อ.','พ.','พฤ.','ศ.','ส.','อา.'],DATES=[23,24,25,26,27,28,29];
 const FULL=['วันจันทร์','วันอังคาร','วันพุธ','วันพฤหัสบดี','วันศุกร์','วันเสาร์','วันอาทิตย์'];
-const KEY='aegean-v4',SK='aegean-sub',NW='30 พ.ย. – 6 ธ.ค.';
+const KEY='aegean-v4',SK='aegean-sub',CLOSED=[2],NW='30 พ.ย. – 6 ธ.ค.';
 const cols=['#2B5A3A','#9A5B3E','#3E6E8C','#8A7A2B','#6B4E8C','#8C3E5E'];
 const TITLE={me:'ของฉัน',home:'ภาพรวมวันนี้',roster:'ตารางพนักงาน',reqs:'คำขอสลับกะ',alerts:'แจ้งเตือน',staff:'จัดการพนักงาน'};
 const TABS=[['home','ภาพรวม'],['roster','ตาราง'],['reqs','คำขอ'],['alerts','แจ้งเตือน'],['staff','พนักงาน']],TABS_S=[['me','ของฉัน'],...TABS];
@@ -94,19 +94,19 @@ const SEED=()=>({need:[4,4,0,4,4,2,1],reqs:[],logs:[],E:[
  {id:4,n:'ฟ้า',av:[0,3,4,5,6],s:[5]},{id:5,n:'โอ๊ต',av:[0,1,4,5],s:[0,1,4]}]});
 const raw=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
 const cl=s=>String(s==null?'':s).replace(/[<>&"'`]/g,''),cn=s=>cl(s).slice(0,30);
-const dd=a=>Array.isArray(a)?[...new Set(a.map(Number).filter(d=>d>=0&&d<=6))].sort((x,y)=>x-y):[];
+const dd=a=>Array.isArray(a)?[...new Set(a.map(Number).filter(d=>d>=0&&d<=6&&!CLOSED.includes(d)))].sort((x,y)=>x-y):[];
 const tt=x=>Array.isArray(x)&&x.length===2&&x[0]>=0&&x[1]<=24&&x[0]<x[1]?[Number(x[0]),Number(x[1])]:[9,17];
 const uid=()=>Math.random().toString(36).slice(2,9),tok=()=>(uid()+uid()).slice(0,10);
 function sane(o){try{if(!o||!Array.isArray(o.E)||!Array.isArray(o.need)||o.need.length!==7)return null;
  const seen=new Set(),E=[];o.E.forEach(e=>{const id=Number(e&&e.id);if(!Number.isInteger(id)||seen.has(id))return;seen.add(id);const s=dd(e.s),t={};s.forEach(d=>t[d]=tt(e.t&&e.t[d]));E.push({id,n:cn(e.n)||'พนักงาน',av:dd(e.av),s,t,tk:(/^[a-z0-9]{6,12}$/.test(e.tk)?e.tk:tok()),...(typeof e.ph==='string'&&e.ph.startsWith('data:image/')?{ph:e.ph}:{})})});
  E.sort((a,b)=>a.id-b.id);
- const need=o.need.map(n=>Math.max(0,Math.min(20,parseInt(n)||0)));
+ const need=o.need.map((n,d)=>CLOSED.includes(d)?0:Math.max(0,Math.min(20,parseInt(n)||0)));
  const reqs=(Array.isArray(o.reqs)?o.reqs:[]).filter(r=>r&&seen.has(r.b)&&(r.k==='assign'||seen.has(r.a))&&Number.isInteger(r.d)&&['wait_b','wait_owner','done','no'].includes(r.st)).map(r=>({id:String(r.id||uid()),k:r.k==='assign'?'assign':'swap',a:r.k==='assign'?null:r.a,b:r.b,d:r.d,e:Number.isInteger(r.e)?r.e:null,t:tt(r.t),st:r.st,at:Number(r.at)||0}));
  const logs=(Array.isArray(o.logs)?o.logs:[]).slice(0,50).map(l=>({t:cl(l&&l.t)}));
- return{need,closed:Array.isArray(o.closed)?dd(o.closed):[2],rate:(o.rate!=null&&Number.isFinite(Number(o.rate)))?Math.max(0,Math.min(9999,Math.round(Number(o.rate)))):40,E,reqs,logs}}catch(e){return null}}
+ return{need,rate:(o.rate!=null&&Number.isFinite(Number(o.rate)))?Math.max(0,Math.min(9999,Math.round(Number(o.rate)))):40,E,reqs,logs}}catch(e){return null}}
 const saneSub=o=>{const r={};if(o&&typeof o==='object')Object.keys(o).forEach(k=>{const s=o[k];if(s&&Array.isArray(s.av)&&Array.isArray(s.off))r[k]={av:dd(s.av),off:dd(s.off),at:Number(s.at)||0}});return r};
 const route=()=>{const m=/^#s-(\d+)-([a-z0-9]+)$/.exec(location.hash);return m?{id:+m[1],tk:m[2]}:null},isStaff=()=>!!route();
-function units(){return{core:JSON.stringify({need:S.need,closed:S.closed,rate:S.rate,logs:S.logs}),emp:Object.fromEntries(S.E.map(e=>[e.id,JSON.stringify(e)])),rq:Object.fromEntries(S.reqs.map(r=>[r.id,JSON.stringify(r)]))}}
+function units(){return{core:JSON.stringify({need:S.need,rate:S.rate,logs:S.logs}),emp:Object.fromEntries(S.E.map(e=>[e.id,JSON.stringify(e)])),rq:Object.fromEntries(S.reqs.map(r=>[r.id,JSON.stringify(r)]))}}
 let S=sane(raw(KEY)||raw('aegean-v3'))||sane(SEED()),U=units(),stack=[route()?'me':'home'],edit=false,SUB=saneSub(raw(SK)),DB=null,PF=null,ready=false,preview=false,quiet=0,rbt=0,lastSave=0,sv=0;
 const $=s=>document.querySelector(s),emp=i=>S.E.find(e=>e.id===i),rq=id=>S.reqs.find(r=>r.id===id),cur=()=>stack[stack.length-1];
 const me=()=>{const r=route();if(!r)return null;const e=S.E.find(x=>x.id===r.id&&x.tk===r.tk);return e?e.id:null};
@@ -119,13 +119,12 @@ function pending(){const u=units(),w=[],x=[],o=OWN(),m=me();
  return{w,x}}
 const dirty=()=>{const p=pending();return p.w.length>0||p.x.length>0};
 const cov=d=>S.E.filter(e=>e.s.includes(d)).length;
-const isC=d=>S.closed.includes(d),closedTxt=()=>S.closed.length?'ร้านหยุดทุก'+S.closed.map(d=>FULL[d]).join(' และ '):'ร้านเปิดทุกวัน';
-const lvl=d=>isC(d)?'closed':cov(d)>=S.need[d]?'ok':cov(d)===0?'bad':'warn';
+const lvl=d=>CLOSED.includes(d)?'closed':cov(d)>=S.need[d]?'ok':cov(d)===0?'bad':'warn';
 const col=e=>cols[e.id%6];
 const avatar=(e,b)=>e.ph?`<img class="av${b?' big':''}" src="${e.ph}" alt="">`:`<span class="av${b?' big':''}">${e.n.slice(0,1)}</span>`;
 const dl=a=>a.map(d=>DAYS[d]).join(' ')||'—';
 const ft=x=>String(Math.floor(x)).padStart(2,'0')+':'+(x%1?'30':'00');
-const sh=(e,d)=>(e.t&&e.t[d])||[9,17],hrs=e=>e.s.filter(d=>!isC(d)).reduce((n,d)=>n+sh(e,d)[1]-sh(e,d)[0],0),thb=h=>Math.round(h*S.rate).toLocaleString('th-TH'),fh=h=>String(Math.round(h*10)/10),totH=()=>S.E.reduce((n,e)=>n+hrs(e),0);
+const sh=(e,d)=>(e.t&&e.t[d])||[9,17],hrs=e=>e.s.reduce((n,d)=>n+sh(e,d)[1]-sh(e,d)[0],0),thb=h=>Math.round(h*S.rate).toLocaleString('th-TH'),fh=h=>String(Math.round(h*10)/10),totH=()=>S.E.reduce((n,e)=>n+hrs(e),0);
 const BASE='https://claude.ai/artifact/Bbx2WV8XLgqa82gvsvCLBB',lk=e=>BASE+'#s-'+e.id+'-'+e.tk;
 const lmsg=e=>`สวัสดี ${e.n} กรุณากดลิงก์นี้เพื่อส่งวันว่าง ดูตารางงาน และตอบรับคำขอสลับกะของคุณ: ${lk(e)}`;
 const pa=(d,id)=>S.reqs.some(r=>r.k==='assign'&&r.d===d&&r.b===id&&(r.st==='wait_b'||r.st==='wait_owner'));
@@ -133,11 +132,11 @@ const wp=d=>{const n=S.reqs.filter(r=>r.k==='assign'&&r.d===d&&(r.st==='wait_b'|
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._);t._=setTimeout(()=>t.classList.remove('show'),2300)}
 function log(t){if(OWN())S.logs=[{t},...S.logs].slice(0,50)}
 function go(v){if(v!==cur())stack.push(v);edit=false;render();scrollTo(0,0)}
-function cands(a,d){return S.E.filter(b=>b.id!==a.id&&!b.s.includes(d)&&b.av.includes(d)).map(b=>({b,swaps:b.s.filter(x=>!a.s.includes(x)&&a.av.includes(x)&&!isC(x))}))}
+function cands(a,d){return S.E.filter(b=>b.id!==a.id&&!b.s.includes(d)&&b.av.includes(d)).map(b=>({b,swaps:b.s.filter(x=>!a.s.includes(x)&&a.av.includes(x))}))}
 function alerts(){
   const out=[];
   for(let d=0;d<7;d++){
-    if(isC(d))continue;
+    if(CLOSED.includes(d))continue;
     const c=cov(d),n=S.need[d],l=lvl(d),sug=S.E.filter(e=>!e.s.includes(d)&&e.av.includes(d)&&!pa(d,e.id));
     if(l==='bad')out.push({k:'bad',t:`${FULL[d]} ไม่มีพนักงานลงกะ`,b:`ต้องการ ${n} คน`+wp(d),d,sug});
     else if(l==='warn')out.push({k:'warn',t:`${FULL[d]} ขาดพนักงาน`,b:`ลงกะแล้ว ${c} จากต้องการ ${n} คน`+wp(d),d,sug});
@@ -145,7 +144,7 @@ function alerts(){
   }
   const miss=S.E.filter(e=>!SUB[e.id]);
   if(miss.length)out.push({k:'warn',t:'ยังไม่ส่งวันว่างสัปดาห์หน้า',b:miss.map(e=>e.n).join(', ')});
-  S.E.forEach(e=>{const s=SUB[e.id];if(s)s.off.forEach(d=>{if(!isC(d)&&e.s.includes(d)&&cov(d)-1<S.need[d])out.push({k:'warn',t:`${e.n} ขอหยุด${FULL[d]}`,b:'วันนั้นจะขาดคน ควรหาคนแทน'})})});
+  S.E.forEach(e=>{const s=SUB[e.id];if(s)s.off.forEach(d=>{if(e.s.includes(d)&&cov(d)-1<S.need[d])out.push({k:'warn',t:`${e.n} ขอหยุด${FULL[d]}`,b:'วันนั้นจะขาดคน ควรหาคนแทน'})})});
   const pr={bad:0,warn:1,ok:2};return out.sort((a,b)=>pr[a.k]-pr[b.k]);
 }
 const pend=()=>S.reqs.filter(r=>r.st==='wait_b'||r.st==='wait_owner').length,issues=()=>alerts().filter(a=>a.k!=='ok');
@@ -153,7 +152,7 @@ const pend=()=>S.reqs.filter(r=>r.st==='wait_b'||r.st==='wait_owner').length,iss
 function homeH(){
   const gaps=[0,1,2,3,4,5,6].filter(d=>['warn','bad'].includes(lvl(d))).length;
   let h=`<div class="stats"><div class="stat"><b class="${gaps?'t-bad':'t-ok'}">${gaps}</b><span>วันที่ขาดคน</span></div><div class="stat"><b>${pend()}</b><span>คำขอรออนุมัติ</span></div><div class="stat"><b>${fh(totH())}</b><span>ชั่วโมงรวม</span></div></div>
-  ${rateH()}${closedH()}<div class="card"><div class="ch"><h2>ตารางพนักงาน</h2><button class="link" data-go="roster">ดูทั้งหมด →</button></div>`;
+  ${rateH()}<div class="card"><div class="ch"><h2>ตารางพนักงาน</h2><button class="link" data-go="roster">ดูทั้งหมด →</button></div>`;
   for(let d=0;d<7;d++){
     const who=S.E.filter(e=>e.s.includes(d)),l=lvl(d);
     h+=`<div class="drow"><b>${DAYS[d]}</b><div class="chips">${l==='closed'?'<div class="chip">ร้านหยุด</div>':who.length?who.map(e=>`<div class="chip" style="background:${col(e)}1f;color:${col(e)}">${e.n}</div>`).join(''):'<div class="chip">—</div>'}</div><div class="st t-${l}">${{ok:'ครบ',bad:'ขาด',warn:'ขาด',closed:'หยุด'}[l]}</div></div>`;
@@ -164,18 +163,18 @@ function homeH(){
   h+=`</div><div class="card"><div class="ch"><h2>คำขอสลับกะ</h2><button class="link" data-go="reqs">ดูทั้งหมด →</button></div>`;
   const ps=S.reqs.filter(r=>r.st==='wait_b'||r.st==='wait_owner');
   h+=ps.length?ps.map(r=>`<p style="margin:0 0 6px">${rdesc(r)} <span class="tag warn">${r.st==='wait_b'?'รอตอบรับ':'รออนุมัติ'}</span></p>`).join(''):'<div class="empty">ยังไม่มีคำขอ</div>';
-  return h+`</div>${OWN()?'<div class="act"><button class="btn" data-go="staff">ส่งลิงก์ให้พนักงาน</button></div>':''}<p class="hint" style="margin-top:12px">${closedTxt()}${OWN()?' · พนักงานแต่ละคนมีลิงก์ส่วนตัวสำหรับส่งวันว่างและตอบรับคำขอ':''}</p>`;
+  return h+`</div>${OWN()?'<div class="act"><button class="btn" data-go="staff">ส่งลิงก์ให้พนักงาน</button></div>':''}<p class="hint" style="margin-top:12px">ร้านหยุดทุกวันพุธ${OWN()?' · พนักงานแต่ละคนมีลิงก์ส่วนตัวสำหรับส่งวันว่างและตอบรับคำขอ':''}</p>`;
 }
 function rosterH(){
   const o=OWN(),m=me();
   let h=`<div class="card"><div class="ch"><h2>${edit?'แก้ไขตาราง':'ตารางทั้งสัปดาห์'}</h2><button class="btn ${edit?'':'ghost'}" data-a="edit">${edit?'เสร็จสิ้น':o?'แก้ไขตาราง':'เลือกกะของฉัน'}</button></div>
   <p class="hint">${edit?(o?'แตะช่องว่างเพื่อเพิ่มกะ แตะกะเพื่อเลือกเวลาหรือลบ ปรับจำนวนคนที่ต้องการด้วย − / + ระบบบันทึกให้อัตโนมัติ':'แก้ไขได้เฉพาะแถวของคุณ แตะช่องว่างเพื่อเพิ่มกะ แตะกะเพื่อเลือกเวลาหรือลบ'):(o?'แตะที่กะของพนักงานเพื่อขอสลับกะ':'แตะกะของคุณเพื่อขอสลับกะ')}</p><div class="scroll"><div class="grid"><div></div>`;
-  for(let d=0;d<7;d++){const x=isC(d);h+=`<div class="dh ${lvl(d)}">${DAYS[d]} ${DATES[d]}<small>${x?'ร้านหยุด':cov(d)+'/'+S.need[d]+' คน'}</small>${edit&&!x&&o?`<div class="stp"><button data-need="${d}:-1" aria-label="ลดจำนวน">−</button><button data-need="${d}:1" aria-label="เพิ่มจำนวน">+</button></div>`:''}</div>`}
+  for(let d=0;d<7;d++){const x=CLOSED.includes(d);h+=`<div class="dh ${lvl(d)}">${DAYS[d]} ${DATES[d]}<small>${x?'ร้านหยุด':cov(d)+'/'+S.need[d]+' คน'}</small>${edit&&!x&&o?`<div class="stp"><button data-need="${d}:-1" aria-label="ลดจำนวน">−</button><button data-need="${d}:1" aria-label="เพิ่มจำนวน">+</button></div>`:''}</div>`}
   S.E.forEach(e=>{
     const c=can(e.id);
     h+=`<div class="emp">${avatar(e)}<div><b>${e.n}${e.id===m?' (คุณ)':''}</b><small>${fh(hrs(e))} ชม. · ${thb(hrs(e))} บ.</small></div></div>`;
     for(let d=0;d<7;d++){
-      if(isC(d)){h+='<div class="cell x"></div>';continue}
+      if(CLOSED.includes(d)){h+='<div class="cell x"></div>';continue}
       let inner='';
       if(e.s.includes(d)){const[a,b]=sh(e,d),body=`<b>${ft(a)}–${ft(b)}</b><span>${fh(b-a)} ชม. · ${thb(b-a)} บ.</span>`;inner=c?`<button class="shift" data-${edit?'tg':'sw'}="${e.id}:${d}">${body}</button>`:`<div class="shift">${body}</div>`}
       else if(edit&&c)inner=`<button class="add" data-tg="${e.id}:${d}" aria-label="เพิ่มกะ">+</button>`;
@@ -191,7 +190,7 @@ function staffH(){
     const s=SUB[e.id],c=can(e.id);
     h+=`<div class="card" style="padding:14px"><div class="act" style="margin:0;flex-wrap:nowrap">${c?`<label style="cursor:pointer"><input type="file" accept="image/*" data-ph="${e.id}" hidden>${avatar(e,1)}</label>`:avatar(e,1)}<div style="flex:1;min-width:0">${c?`<input class="inp" style="width:100%" value="${e.n}" data-name="${e.id}" aria-label="ชื่อพนักงาน">`:`<b>${e.n}</b>`}<div class="sub">ตำแหน่ง: พนักงาน</div></div>
     ${o?`<button class="circ" data-del="${e.id}" aria-label="ลบพนักงาน">${ic('trash')}</button>`:''}</div>
-    <div class="sub" style="margin-top:10px">วันที่ว่าง</div><div class="days">${DAYS.map((x,d)=>`<button class="${e.av.includes(d)?'on':''}" ${isC(d)||!c?'disabled':''} data-av="${e.id}:${d}">${x}</button>`).join('')}</div>
+    <div class="sub" style="margin-top:10px">วันที่ว่าง</div><div class="days">${DAYS.map((x,d)=>`<button class="${e.av.includes(d)?'on':''}" ${CLOSED.includes(d)||!c?'disabled':''} data-av="${e.id}:${d}">${x}</button>`).join('')}</div>
     <div class="act" style="margin-top:12px"><span class="sub" style="flex:1">${s?`ส่งแล้ว · ว่าง ${dl(s.av)} · ขอหยุด ${dl(s.off)}`:'ยังไม่ส่งวันว่างสัปดาห์หน้า'}</span>${s&&o?`<button class="btn ghost" data-use="${e.id}">ใช้ข้อมูลนี้</button>`:''}</div>${o?linkH(e):''}</div>`;
   });
   return h;
@@ -214,15 +213,15 @@ function reqsH(){
     return`<div class="req"><div class="ch" style="margin:0;align-items:flex-start"><h3>${rdesc(r)}</h3>${tag}</div><div class="steps">${labels.map((l,j)=>`<div class="${j<idx?'on':''}">${l}</div>`).join('')}</div>${act?`<div class="act">${act}</div>`:''}${o&&r.st==='wait_b'?notifyH(r,b):''}</div>`;
   }).join('');
 }
-function linkH(e){return`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px"><div class="sub">ลิงก์ส่วนตัวของ ${e.n} (ดูได้ทุกหน้า แก้ไขได้เฉพาะข้อมูลของตัวเอง)</div><div class="act"><a class="btn" target="_blank" rel="noopener" href="line://msg/text/${encodeURIComponent(lmsg(e))}">ส่งทาง LINE</a><button class="btn ghost" data-preview="${e.id}">ดูหน้าพนักงาน</button><button class="btn ghost" data-newtk="${e.id}">สร้างลิงก์ใหม่</button></div></div>`}
+function linkH(e){return`<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px"><div class="sub">ลิงก์ส่วนตัวของ ${e.n} (ดูได้ทุกหน้า แก้ไขได้เฉพาะข้อมูลของตัวเอง)</div><div class="act"><button class="btn" data-copy="${e.id}">คัดลอกลิงก์</button><a class="btn ghost" target="_blank" rel="noopener" href="https://line.me/R/share?text=${encodeURIComponent(lmsg(e))}">ส่งทาง LINE</a><button class="btn ghost" data-preview="${e.id}">ดูหน้าพนักงาน</button><button class="btn ghost" data-newtk="${e.id}">สร้างลิงก์ใหม่</button></div></div>`}
 function notifyH(r,b){const m=`สวัสดี ${b.n} มีคำขอรอคุณยินยอม: ${rdesc(r)} กรุณาเปิดลิงก์ส่วนตัวเพื่อตอบรับ: ${lk(b)}`;
- return`<div class="act"><span class="sub">แจ้งพนักงาน:</span><a class="btn" target="_blank" rel="noopener" href="line://msg/text/${encodeURIComponent(m)}">ส่งทาง LINE</a></div>`}
+ return`<div class="act"><span class="sub">แจ้งพนักงาน:</span><a class="btn ghost" target="_blank" rel="noopener" href="https://line.me/R/share?text=${encodeURIComponent(m)}">ส่งทาง LINE</a></div>`}
 function meH(){
-  const m=me(),e=emp(m);if(!PF||PF.me!==m){const s=SUB[m];PF={me:m,av:s?[...s.av]:[0,1,2,3,4,5,6].filter(d=>!isC(d)),off:s?[...s.off]:[]}}
-  const btn=(k,cls)=>DAYS.map((x,d)=>`<button class="${cls} ${PF[k].includes(d)?'on':''}" ${isC(d)?'disabled':''} data-p${k==='av'?'a':'o'}="${d}">${x}</button>`).join('');
-  const ms=e.s.filter(d=>!isC(d)),mine=ms.length?ms.map(d=>{const[a,b]=sh(e,d);return`<div class="drow" style="grid-template-columns:64px 1fr auto"><b>${DAYS[d]} ${DATES[d]}</b><span>${ft(a)}–${ft(b)}</span><span class="sub">${fh(b-a)} ชม. · ${thb(b-a)} บาท</span></div>`}).join('')+`<p style="margin:10px 0 0;font-weight:600">รวม ${fh(hrs(e))} ชั่วโมง · ${thb(hrs(e))} บาท</p>`:'<div class="empty" style="padding:14px">ยังไม่มีกะในสัปดาห์นี้</div>';
+  const m=me(),e=emp(m);if(!PF||PF.me!==m){const s=SUB[m];PF={me:m,av:s?[...s.av]:[0,1,3,4,5,6],off:s?[...s.off]:[]}}
+  const btn=(k,cls)=>DAYS.map((x,d)=>`<button class="${cls} ${PF[k].includes(d)?'on':''}" ${CLOSED.includes(d)?'disabled':''} data-p${k==='av'?'a':'o'}="${d}">${x}</button>`).join('');
+  const mine=e.s.length?e.s.map(d=>{const[a,b]=sh(e,d);return`<div class="drow" style="grid-template-columns:64px 1fr auto"><b>${DAYS[d]} ${DATES[d]}</b><span>${ft(a)}–${ft(b)}</span><span class="sub">${fh(b-a)} ชม. · ${thb(b-a)} บาท</span></div>`}).join('')+`<p style="margin:10px 0 0;font-weight:600">รวม ${fh(hrs(e))} ชั่วโมง · ${thb(hrs(e))} บาท</p>`:'<div class="empty" style="padding:14px">ยังไม่มีกะในสัปดาห์นี้</div>';
   return reqCard()+`<div class="card"><div class="ch"><h2>ตารางงานของฉัน</h2><button class="link" data-go="roster">เลือกกะ →</button></div>${mine}</div>
-  <div class="card"><div class="ch" style="margin:0"><h2>การส่งข้อมูลวันที่ว่างทำงาน</h2></div><p class="hint" style="margin:2px 0 0">สัปดาห์ ${NW} · ${closedTxt()}</p><div class="days">${btn('av','')}</div>
+  <div class="card"><div class="ch" style="margin:0"><h2>การส่งข้อมูลวันที่ว่างทำงาน</h2></div><p class="hint" style="margin:2px 0 0">สัปดาห์ ${NW} · ร้านหยุดทุกวันพุธ</p><div class="days">${btn('av','')}</div>
   <div class="ch" style="margin:20px 0 0"><h2>วันหยุดที่ขอ</h2><span class="tag ok">${PF.off.length} วัน</span></div><div class="days" style="margin-top:12px">${btn('off','off')}</div>
   <div class="act" style="margin-top:20px"><button class="btn" style="flex:1;padding:13px" data-psend="1">${SUB[m]?'ส่งข้อมูลอีกครั้ง':'ส่งข้อมูล'}</button></div>${SUB[m]?'<p class="hint" style="margin:10px 0 0">ส่งข้อมูลแล้ว เจ้าของร้านจะเห็นในระบบ</p>':''}</div>`;
 }
@@ -236,7 +235,7 @@ function draw(){
   $('#tabs').style.display='';
   let v=cur();const V={me:meH,home:homeH,roster:rosterH,reqs:reqsH,alerts:alertsH,staff:staffH};if(!V[v]||(v==='me'&&!st))v=hk;
   const n=issues().length;
-  $('#title').textContent=v==='me'?'สวัสดี '+emp(m).n:v==='staff'&&st?'พนักงาน':TITLE[v];$('#sub').textContent=(st?'พอร์ทัลพนักงาน · ':'')+'สัปดาห์ 23 – 29 พ.ย. 2569 · '+closedTxt();
+  $('#title').textContent=v==='me'?'สวัสดี '+emp(m).n:v==='staff'&&st?'พนักงาน':TITLE[v];$('#sub').textContent=(st?'พอร์ทัลพนักงาน · ':'')+'สัปดาห์ 23 – 29 พ.ย. 2569 · ร้านหยุดทุกวันพุธ';
   $('#circs').innerHTML=(v===hk?`<button class="circ" data-go="alerts" aria-label="แจ้งเตือน">${ic('bell')}${n?`<b>${n}</b>`:''}</button>`:`<button class="circ" data-a="back" aria-label="ย้อนกลับ">${ic('back')}</button><button class="circ" data-a="home" aria-label="หน้าหลัก">${ic('home')}</button>`)+exit;
   $('#tabs').innerHTML=(st?TABS_S:TABS).map(([k,l])=>`<button class="tab ${k===v?'on':''}" data-go="${k}">${l}</button>`).join('');
   $('#main').innerHTML=V[v]();
@@ -259,7 +258,6 @@ function apply(r){
 function rdesc(r){const a=r.a==null?null:emp(r.a),b=emp(r.b);
  if(r.k==='assign'){const h=r.t[1]-r.t[0];return`มอบหมาย ${b.n} ลงกะ${FULL[r.d]} ${ft(r.t[0])}–${ft(r.t[1])} (${fh(h)} ชม. · ${thb(h)} บาท)`}
  return r.e==null?`${a.n} ให้ ${b.n} รับ${FULL[r.d]}`:`${a.n} แลกกะกับ ${b.n}: ${FULL[r.d]} ↔ ${FULL[r.e]}`}
-function closedH(){if(!OWN())return'';return`<div class="card"><div class="ch" style="margin-bottom:8px"><h2>วันร้านหยุด</h2><span class="sub">ติ๊กเลือกวันที่ร้านหยุด</span></div><div class="days">${DAYS.map((x,d)=>`<button class="off ${isC(d)?'on':''}" role="checkbox" aria-checked="${isC(d)}" data-closed="${d}">${isC(d)?'✓ ':''}${x}</button>`).join('')}</div></div>`}
 function rateH(){const sum=`<p style="margin:0">รวมสัปดาห์นี้ <b>${fh(totH())} ชั่วโมง</b> · <b>${thb(totH())} บาท</b></p>`;
  if(!OWN())return`<div class="card"><div class="ch"><h2>ค่าจ้างต่อชั่วโมง</h2><b>${S.rate} บาท</b></div>${sum}</div>`;
  return`<div class="card"><div class="ch"><h2>ค่าจ้างต่อชั่วโมง</h2><div class="act" style="margin:0"><button class="circ" style="width:36px;height:36px" data-rate="-5" aria-label="ลดอัตราจ้าง">−</button><input class="inp" type="number" min="0" inputmode="numeric" style="width:84px;text-align:center" value="${S.rate}" data-ratein="1" aria-label="อัตราจ้างต่อชั่วโมง"><button class="circ" style="width:36px;height:36px" data-rate="5" aria-label="เพิ่มอัตราจ้าง">+</button><span class="sub">บาท</span></div></div>${sum}</div>`}
@@ -272,7 +270,7 @@ function openTime(e,d){const p=emp(e),has=p.s.includes(d),[st,en]=has?sh(p,d):[9
  $('#sheet').innerHTML=`<h2>${has?'แก้ไขกะ':'เพิ่มกะ'}${FULL[d]}</h2><p class="sub">${p.n} · อัตราจ้าง ${S.rate} บาท/ชั่วโมง</p><div class="act" style="margin-top:14px"><label class="sub">เริ่ม<br><select class="inp" data-ts="st">${op(st)}</select></label><label class="sub">เลิก<br><select class="inp" data-ts="en">${op(en)}</select></label></div><p id="tsum" style="font-weight:600;margin:14px 0 0"></p><div class="act" style="margin-top:16px"><button class="btn" id="tsave" data-tsave="1" style="flex:1">บันทึกกะ</button>${has?'<button class="btn ghost" data-tdel="1">ลบกะ</button>':''}<button class="btn ghost" data-a="close">ปิด</button></div>`;$('#mask').classList.add('show');tsum()}
 function readPhoto(f,id){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=96;const s=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,96,96);emp(id).ph=c.toDataURL('image/jpeg',.8);render()};im.src=r.result};r.readAsDataURL(f)}
 const tgl=(a,d)=>a.includes(d)?a.filter(x=>x!==d):[...a,d].sort((x,y)=>x-y);
-const OO=['del','del2','need','rate','fill','use','closed','preview','newtk'];
+const OO=['del','del2','need','rate','fill','use','copy','preview','newtk'];
 document.addEventListener('click',ev=>{
   const t=ev.target.closest('button,.mask');if(!t)return;const D=t.dataset,A=D.a;
   if(t.id==='mask'&&ev.target===t)return $('#mask').classList.remove('show');
@@ -281,6 +279,7 @@ document.addEventListener('click',ev=>{
   if(A==='exit'){preview=false;location.hash='';return}
   if(D.preview){const e=emp(+D.preview);preview=true;location.hash='s-'+e.id+'-'+e.tk;return}
   if(D.newtk){const e=emp(+D.newtk);e.tk=tok();render();return toast('สร้างลิงก์ใหม่แล้ว ลิงก์เก่าใช้ไม่ได้')}
+  if(D.copy){const e=emp(+D.copy),u=lk(e),done=()=>toast('คัดลอกลิงก์ของ '+e.n+' แล้ว'),fb=()=>{$('#sheet').innerHTML=`<h2>ลิงก์ของ ${e.n}</h2><p class="sub">กดค้างที่ช่องแล้วคัดลอก</p><input class="inp" style="width:100%;margin-top:10px" readonly value="${u}" id="lkin"><button class="btn ghost" style="width:100%;margin-top:14px" data-a="close">ปิด</button>`;$('#mask').classList.add('show');const i=$('#lkin');i.focus();i.select()};try{navigator.clipboard.writeText(u).then(done,fb)}catch(x){fb()}return}
   if(D.pa!==undefined&&PF){const d=+D.pa;PF.av=tgl(PF.av,d);PF.off=PF.off.filter(x=>x!==d);return render()}
   if(D.po!==undefined&&PF){const d=+D.po;PF.off=tgl(PF.off,d);PF.av=PF.av.filter(x=>x!==d);return render()}
   if(D.psend&&PF){const m=me();if(m==null)return;const rec={av:PF.av,off:PF.off,at:Date.now()};SUB[m]=rec;try{localStorage.setItem(SK,JSON.stringify(SUB))}catch(e){}if(DB)DB.collection('avail').doc(String(m)).set(rec).catch(()=>toast('ส่งไม่สำเร็จ ลองอีกครั้ง'));render();return toast('ส่งข้อมูลเรียบร้อยแล้ว')}
@@ -293,7 +292,6 @@ document.addEventListener('click',ev=>{
   if(D.tg){const[e,d]=D.tg.split(':').map(Number);if(!can(e))return;return openTime(e,d)}
   if(D.tsave){const p=emp(TS.e);if(!p||!can(p.id))return;if(!p.s.includes(TS.d)){p.s.push(TS.d);p.s.sort((x,y)=>x-y);if(!p.av.includes(TS.d))toast(p.n+' ไม่ได้ลงวันว่างวันนี้ไว้')}p.t=p.t||{};p.t[TS.d]=[TS.st,TS.en];$('#mask').classList.remove('show');return render()}
   if(D.tdel){const p=emp(TS.e);if(!p||!can(p.id))return;p.s=p.s.filter(x=>x!==TS.d);if(p.t)delete p.t[TS.d];$('#mask').classList.remove('show');return render()}
-  if(D.closed!==undefined){const d=+D.closed;S.closed=tgl(S.closed,d);if(!S.closed.includes(d)&&!S.need[d])S.need[d]=3;return render()}
   if(D.rate){S.rate=Math.max(0,Math.min(9999,S.rate+Number(D.rate)));return render()}
   if(D.need){const[d,k]=D.need.split(':').map(Number);S.need[d]=Math.max(0,S.need[d]+k);return render()}
   if(D.av){const[e,d]=D.av.split(':').map(Number),p=emp(e);if(!p||!can(e))return;p.av=tgl(p.av,d);return render()}
@@ -320,7 +318,7 @@ function rebuild(){
   const E=[],R=[],pj=j=>{try{return JSON.parse(j)}catch(e){return null}};
   ks.forEach(k=>{const x=pj(DBU.emp[k]);if(x)E.push(x)});Object.keys(DBU.rq).forEach(k=>{const x=pj(DBU.rq[k]);if(x)R.push(x)});
   R.sort((a,b)=>(b.at||0)-(a.at||0));
-  const n=sane({need:core.need||SEED().need,closed:core.closed,rate:core.rate,logs:core.logs,E,reqs:R});
+  const n=sane({need:core.need||SEED().need,rate:core.rate,logs:core.logs,E,reqs:R});
   if(n){S=n;U={core:DBU.core,emp:{...DBU.emp},rq:{...DBU.rq}}}
   ready=true;softRender();
 }
